@@ -4,11 +4,16 @@ use nalgebra::Vector3 as v3;
 
 pub struct SystemState {
     bodies: Vec<BodyState>,
+    g: f32,
 }
 
 impl SystemState {
-    pub fn from(bodies: Vec<BodyState>) -> SystemState {
-        SystemState { bodies }
+    pub fn from(bodies: Vec<BodyState>, g: f32) -> SystemState {
+        SystemState { bodies, g }
+    }
+
+    pub fn getBodies(&self) -> &Vec<BodyState> {
+        return &self.bodies;
     }
 }
 
@@ -47,7 +52,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn step_by_newton_changes_the_state(){
+    fn step_by_newton_changes_the_state() {
         let dt = 10.0;
         let g = 1.0;
         let m1 = 1.0;
@@ -69,17 +74,53 @@ mod tests {
         let f3 = v3::new(0.0, 0.0, 0.0);
         let b3 = BodyState::new(m3, r3, v3, a3, f3);
         let bs = vec![b1, b2, b3];
-        let mut sys = SystemState::from(bs);
+        let mut sys = SystemState::from(bs, g);
         step_by_newton(&mut sys, dt, g);
-        assert_ne!(sys.bodies[0].get_acceleration(), a1, "assert acceleration of body 1 changed");
-        assert_ne!(sys.bodies[1].get_acceleration(), a2, "assert acceleration of body 2 changed");
-        assert_ne!(sys.bodies[2].get_acceleration(), a3, "assert acceleration of body 3 changed");
-        assert_ne!(sys.bodies[0].get_velocity(), v1, "assert velocity of body 1 changed");
-        assert_ne!(sys.bodies[1].get_velocity(), v2, "assert velocity of body 2 changed");
-        assert_ne!(sys.bodies[2].get_velocity(), v3, "assert velocity of body 3 changed");
-        assert_ne!(sys.bodies[0].get_position(), r1, "assert position of body 1 changed");
-        assert_ne!(sys.bodies[1].get_position(), r2, "assert position of body 2 changed");
-        assert_ne!(sys.bodies[2].get_position(), r3, "assert position of body 3 changed");
+        assert_ne!(
+            sys.bodies[0].get_acceleration(),
+            a1,
+            "assert acceleration of body 1 changed"
+        );
+        assert_ne!(
+            sys.bodies[1].get_acceleration(),
+            a2,
+            "assert acceleration of body 2 changed"
+        );
+        assert_ne!(
+            sys.bodies[2].get_acceleration(),
+            a3,
+            "assert acceleration of body 3 changed"
+        );
+        assert_ne!(
+            sys.bodies[0].get_velocity(),
+            v1,
+            "assert velocity of body 1 changed"
+        );
+        assert_ne!(
+            sys.bodies[1].get_velocity(),
+            v2,
+            "assert velocity of body 2 changed"
+        );
+        assert_ne!(
+            sys.bodies[2].get_velocity(),
+            v3,
+            "assert velocity of body 3 changed"
+        );
+        assert_ne!(
+            sys.bodies[0].get_position(),
+            r1,
+            "assert position of body 1 changed"
+        );
+        assert_ne!(
+            sys.bodies[1].get_position(),
+            r2,
+            "assert position of body 2 changed"
+        );
+        assert_ne!(
+            sys.bodies[2].get_position(),
+            r3,
+            "assert position of body 3 changed"
+        );
     }
 
     #[test]
@@ -130,7 +171,7 @@ mod tests {
         let f3 = v3::new(0.0, 0.0, 0.0);
         let b3 = BodyState::new(m3, r3, v3, a3, f3);
         let bs = vec![b1, b2, b3];
-        let mut sys = SystemState::from(bs);
+        let mut sys = SystemState::from(bs, g);
 
         let expected_a1 = v3::new(2.0, 3.0, 0.0);
         let expected_a2 = ((3.0 / 2.0) * v3::new(-2.0_f32.sqrt(), 2.0_f32.sqrt(), 0.0)
