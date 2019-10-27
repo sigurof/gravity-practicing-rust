@@ -1,5 +1,7 @@
 use nalgebra::Vector3 as v3;
 
+#[derive(Builder)]
+#[builder(setter(into))]
 pub struct BodyState {
     m: f32,     // mass
     r: v3<f32>, // position
@@ -12,20 +14,11 @@ impl BodyState {
     pub fn new(m: f32, r: v3<f32>, v: v3<f32>, a: v3<f32>, f: v3<f32>) -> BodyState {
         BodyState { m, r, v, a, f }
     }
-    pub fn reset_acceleration(&mut self) {
-        self.a = v3::new(0.0, 0.0, 0.0);
-    }
-    pub fn set_force(&mut self, f: v3<f32>) {
-        self.f = f;
-    }
     pub fn reset_force(&mut self) {
         self.f = v3::new(0.0, 0.0, 0.0);
     }
     pub fn set_acceleration_from_force(&mut self) {
         self.a = self.f / self.m;
-    }
-    pub fn add_acceleration(&mut self, a: v3<f32>) {
-        self.a += a;
     }
     pub fn add_force(&mut self, f: v3<f32>) {
         self.f += f;
@@ -35,15 +28,6 @@ impl BodyState {
     }
     pub fn set_position(&mut self, r: v3<f32>) {
         self.r = r;
-    }
-    pub fn get_mass(&self) -> f32 {
-        self.m
-    }
-    pub fn get_acceleration(&self) -> v3<f32> {
-        self.a
-    }
-    pub fn get_velocity(&self) -> v3<f32> {
-        self.v
     }
     pub fn get_position(&self) -> v3<f32> {
         self.r
@@ -164,17 +148,6 @@ mod tests {
     }
 
     #[test]
-    fn bs_add_acceleration() {
-        let acc1 = v3::new(1.0, 2.0, 3.0);
-        let acc2 = v3::new(0.0, 3.0, -1.0);
-        let mut allzero = get_all_zeros();
-        allzero.add_acceleration(acc1);
-        assert_eq!(allzero.a, acc1);
-        allzero.add_acceleration(acc2);
-        assert_eq!(allzero.a, acc1 + acc2);
-    }
-
-    #[test]
     fn bs_set_velocity() {
         let vel = v3::new(1.0, 2.0, 3.0);
         let mut allzero = get_all_zeros();
@@ -188,15 +161,5 @@ mod tests {
         let mut allzero = get_all_zeros();
         allzero.set_position(pos);
         assert_eq!(allzero.r, pos);
-    }
-
-    fn bs_get_mass() {
-        let mass = 1.0;
-        let pos = v3::new(0.0, 0.0, 0.0);
-        let vel = v3::new(0.0, 0.0, 0.0);
-        let acc = v3::new(0.0, 0.0, 0.0);
-        let force = v3::new(0.0, 0.0, 0.0);
-        let bs = BodyState::new(mass, pos, vel, acc, force);
-        assert_eq!(bs.get_mass(), mass);
     }
 }
