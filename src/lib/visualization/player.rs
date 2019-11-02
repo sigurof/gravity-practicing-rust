@@ -8,7 +8,6 @@ use nalgebra::Vector3 as v3;
 
 pub struct Player {
     number_of_images: usize,
-    // nodes: Vec<SceneNode>,
     nodes: Vec<Box<dyn Entity>>,
     current_frame: usize,
 }
@@ -19,16 +18,11 @@ pub struct PlayerSettings<'a> {
 
 impl Player {
     pub fn of(recording: impl Recording, window: &mut Window) -> Player {
-        /*         println!(
-            "I got a recording of {} frames",
-            recording.get_images().len()
-        ); */
         let mut player = Player {
             number_of_images: recording.get_images().len(),
             nodes: recording.build_entities(window),
             current_frame: 0,
         };
-        // player.connect_to(settings.window);
         player
     }
 

@@ -1,8 +1,8 @@
-use super::model::{NewtonianModel};
+use super::model::{NewtonianModel, PhysicsModel};
 
-pub struct Simulation {
+pub struct Simulation<'a> {
     settings: SimulationSettings,
-    physics_model: NewtonianModel,
+    physics_model: Box<dyn PhysicsModel + 'a>,
 }
 
 #[derive(Default, Builder)]
@@ -11,22 +11,24 @@ pub struct SimulationSettings {
     dt: f32,
 }
 
-impl Simulation {
-    pub fn of(physics_model: NewtonianModel, settings: SimulationSettings) -> Simulation {
+impl<'a> Simulation<'a> {
+    pub fn of(
+        physics_model: impl PhysicsModel + 'a,
+        settings: SimulationSettings,
+    ) -> Simulation<'a> {
         Simulation {
             settings,
-            physics_model,
+            physics_model: Box::from(physics_model),
         }
     }
-    pub fn do_steps(&mut self, steps: usize) -> &NewtonianModel {
+    pub fn do_steps(&mut self, steps: usize) -> Box<dyn PhysicsModel + 'a> {
         for _ in 0..steps {
             self.single_step();
         }
-        &self.physics_model
+        self.physics_model
     }
 
     fn single_step(&mut self) {
         self.physics_model.single_step_by(self.settings.dt);
     }
 }
-

@@ -1,5 +1,6 @@
 use super::super::gravity::body;
-use body::{BodyState};
+use super::PhysicsModel;
+use body::BodyState;
 
 use nalgebra::Vector3 as v3;
 
@@ -12,6 +13,20 @@ pub struct NewtonianModel {
 #[builder(setter(into))]
 pub struct NewtonianSettings {
     g: f32,
+}
+
+impl PhysicsModel for NewtonianModel {
+    fn single_step_by(&mut self, dt: f32) {
+        for body_state in &mut self.body_states {
+            body_state.reset_force();
+        }
+        foreach_body_pair_add_force_contrib(self);
+        for body_state in &mut self.body_states {
+            let (r, v) = body::get_new_pos_and_vel_by_newton(body_state, dt);
+            body_state.set_position(r);
+            body_state.set_velocity(v);
+        }
+    }
 }
 
 impl NewtonianModel {
@@ -27,18 +42,6 @@ impl NewtonianModel {
             .iter()
             .map(|body| body.get_position())
             .collect()
-    }
-
-    pub fn single_step_by(&mut self, dt: f32) {
-        for body_state in &mut self.body_states {
-            body_state.reset_force();
-        }
-        foreach_body_pair_add_force_contrib(self);
-        for body_state in &mut self.body_states {
-            let (r, v) = body::get_new_pos_and_vel_by_newton(body_state, dt);
-            body_state.set_position(r);
-            body_state.set_velocity(v);
-        }
     }
 }
 
