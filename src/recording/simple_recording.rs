@@ -2,6 +2,7 @@ use crate::gravity::{
     calculation::{Simulation, SimulationSettings, SimulationSettingsBuilder},
     physics::{PhysicsModel, PhysicsSettingsBuilder},
 };
+use super::RecordingSettings;
 use kiss3d::camera::Camera;
 use kiss3d::camera::FirstPerson;
 use kiss3d::scene::SceneNode;
@@ -10,19 +11,16 @@ use nalgebra::Point3;
 use nalgebra::Translation3;
 use nalgebra::Vector3 as v3;
 
-pub struct Recording {
+
+pub struct SimpleRecording {
     images: Vec<Vec<v3<f32>>>,
 }
 
-pub struct RecordingSettings {
-    steps_per_frame: usize,
-    number_of_frames: usize,
-}
 
-impl Recording {
-    pub fn of(simulation: Simulation, settings: RecordingSettings) -> Recording {
-        Recording {
-            images: Recording::record_images_while_simulating(simulation, settings),
+impl SimpleRecording {
+    pub fn of(simulation: Simulation, settings: RecordingSettings) -> SimpleRecording {
+        SimpleRecording {
+            images: SimpleRecording::record_images_while_simulating(simulation, settings),
         }
     }
 
@@ -44,26 +42,6 @@ impl Recording {
 
 }
 
-impl RecordingSettings {
-    pub fn new() -> RecordingSettings {
-        RecordingSettings {
-            steps_per_frame: 0,
-            number_of_frames: 0,
-        }
-    }
-    pub fn with_steps_per_frame(self, steps_per_frame: usize) -> RecordingSettings {
-        RecordingSettings {
-            steps_per_frame,
-            ..self
-        }
-    }
-    pub fn with_number_of_frames(self, number_of_frames: usize) -> RecordingSettings {
-        RecordingSettings {
-            number_of_frames,
-            ..self
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -112,7 +90,7 @@ mod tests {
         let body_states_len = body_states.len();
         let earth_and_moon = PhysicsModel::of(body_states, physics_settings);
         let simulation = Simulation::of(earth_and_moon, simulation_settings);
-        let images = Recording::record_images_while_simulating(simulation, recording_settings);
+        let images = SimpleRecording::record_images_while_simulating(simulation, recording_settings);
         assert_eq!(images.len(), number_of_frames);
         for image in images {
             assert_eq!(image.len(), body_states_len, "");

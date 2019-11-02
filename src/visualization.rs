@@ -1,5 +1,5 @@
 use crate::player::{Player, PlayerSettings};
-use crate::recording::Recording;
+use crate::recording::SimpleRecording;
 use kiss3d::camera::{ArcBall, Camera, FirstPerson};
 use kiss3d::event::Key;
 use kiss3d::window::Window;
@@ -26,7 +26,7 @@ impl Visualization {
         }
     }
 
-    pub fn from_recording(recording: Recording, window: &mut Window) {
+    pub fn from_recording(recording: SimpleRecording, window: &mut Window) {
         let playerSettings = PlayerSettings::of(window);
         let mut player = Player::of(recording, playerSettings);
         Visualization::of(player, window);

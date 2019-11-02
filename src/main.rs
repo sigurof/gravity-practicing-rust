@@ -14,7 +14,7 @@ use gravity::{
 };
 use kiss3d::window::Window;
 use player::{Player, PlayerSettings};
-use recording::{Recording, RecordingSettings};
+use recording::{SimpleRecording, RecordingSettings};
 use visualization::Visualization;
 
 fn main() {
@@ -66,7 +66,7 @@ fn main() {
     // let mut earth_and_moon = PhysicsModel::of(vec![earth, moon, moon2, moon3], physics_settings);
     // let mut simulation = Simulation::of(earth_and_moon, simulation_settings);
     let mut simulation = Simulation::of(two_body_system, simulation_settings);
-    let mut recording = Recording::of(simulation, recording_settings);
+    let mut recording = SimpleRecording::of(simulation, recording_settings);
     let mut player = Player::of(recording, playerSettings);
     // player.
     Visualization::of(player, &mut window);
