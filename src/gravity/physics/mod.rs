@@ -8,6 +8,12 @@ pub struct PhysicsModel {
     settings: PhysicsSettings,
 }
 
+#[derive(Default, Builder)]
+#[builder(setter(into))]
+pub struct PhysicsSettings {
+    g: f32,
+}
+
 impl PhysicsModel {
     pub fn of(body_states: Vec<BodyState>, settings: PhysicsSettings) -> PhysicsModel {
         PhysicsModel {
@@ -50,12 +56,6 @@ fn foreach_body_pair_add_force_contrib(model: &mut PhysicsModel) {
         by dividing on the body mass of i */
         model.body_states[i].set_acceleration_from_force()
     }
-}
-
-#[derive(Default, Builder)]
-#[builder(setter(into))]
-pub struct PhysicsSettings {
-    g: f32,
 }
 
 #[cfg(test)]

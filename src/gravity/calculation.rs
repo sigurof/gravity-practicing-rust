@@ -5,6 +5,12 @@ pub struct Simulation {
     physics_model: PhysicsModel,
 }
 
+#[derive(Default, Builder)]
+#[builder(setter(into))]
+pub struct SimulationSettings {
+    dt: f32,
+}
+
 impl Simulation {
     pub fn of(physics_model: PhysicsModel, settings: SimulationSettings) -> Simulation {
         Simulation {
@@ -24,8 +30,3 @@ impl Simulation {
     }
 }
 
-#[derive(Default, Builder)]
-#[builder(setter(into))]
-pub struct SimulationSettings {
-    dt: f32,
-}

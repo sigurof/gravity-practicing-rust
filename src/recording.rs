@@ -14,6 +14,11 @@ pub struct Recording {
     images: Vec<Vec<v3<f32>>>,
 }
 
+pub struct RecordingSettings {
+    steps_per_frame: usize,
+    number_of_frames: usize,
+}
+
 impl Recording {
     pub fn of(simulation: Simulation, settings: RecordingSettings) -> Recording {
         Recording {
@@ -39,10 +44,6 @@ impl Recording {
 
 }
 
-pub struct RecordingSettings {
-    steps_per_frame: usize,
-    number_of_frames: usize,
-}
 impl RecordingSettings {
     pub fn new() -> RecordingSettings {
         RecordingSettings {

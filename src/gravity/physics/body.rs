@@ -2,12 +2,25 @@ use nalgebra::Vector3 as v3;
 
 #[derive(Builder)]
 #[builder(setter(into))]
+// #[builder(build_fn(skip))]
 pub struct BodyState {
     m: f32,     // mass
     r: v3<f32>, // position
     v: v3<f32>, // velocity
     a: v3<f32>, // acceleration
     f: v3<f32>, // force
+}
+
+impl BodyStateBuilder {
+    pub fn default() -> BodyStateBuilder {
+        BodyStateBuilder {
+            m: Some(0.0),
+            r: Some(v3::new(0.0, 0.0, 0.0)),
+            v: Some(v3::new(0.0, 0.0, 0.0)),
+            a: Some(v3::new(0.0, 0.0, 0.0)),
+            f: Some(v3::new(0.0, 0.0, 0.0)),
+        }
+    }
 }
 
 impl BodyState {
@@ -29,8 +42,17 @@ impl BodyState {
     pub fn set_position(&mut self, r: v3<f32>) {
         self.r = r;
     }
+    pub fn get_mass(&self) -> f32 {
+        self.m
+    }
     pub fn get_position(&self) -> v3<f32> {
         self.r
+    }
+    pub fn get_velocity(&self) -> v3<f32> {
+        self.v
+    }
+    pub fn get_acceleration(&self) -> v3<f32> {
+        self.a
     }
     pub fn get_force_from(&self, other: &BodyState, g: f32) -> v3<f32> {
         // F = G*m1*m2*(r2-r1) / ||r2-r1||³

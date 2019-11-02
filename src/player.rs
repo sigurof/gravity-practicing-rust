@@ -10,26 +10,23 @@ pub struct Player {
     current_frame: usize,
 }
 
+pub struct PlayerSettings<'a> {
+    window: &'a mut Window,
+}
+
 impl Player {
-    pub fn of(recording: Recording) -> Player {
+    pub fn of(recording: Recording, settings: PlayerSettings) -> Player {
         println!(
             "I got a recording of {} frames",
             recording.get_images().len()
         );
-        Player {
+        let mut player = Player {
             recording,
             nodes: vec![],
             current_frame: 0,
-        }
-    }
-
-    pub fn connectTo(&mut self, window: &mut Window) {
-        for pos in &self.recording.get_images()[0] {
-            let t = Translation3::from(*pos);
-            let mut obj = window.add_sphere(1.0);
-            obj.set_local_translation(t);
-            self.nodes.push(obj);
-        }
+        };
+        player.connect_to(settings.window);
+        player
     }
 
     pub fn update(&mut self) {
@@ -39,5 +36,20 @@ impl Player {
             let t = Translation3::from(pos);
             self.nodes[idx].set_local_translation(t);
         }
+    }
+
+    fn connect_to(&mut self, window: &mut Window) {
+        for pos in &self.recording.get_images()[0] {
+            let t = Translation3::from(*pos);
+            let mut obj = window.add_sphere(1.0);
+            obj.set_local_translation(t);
+            self.nodes.push(obj);
+        }
+    }
+}
+
+impl<'a> PlayerSettings<'a> {
+    pub fn of(window: &'a mut Window) -> PlayerSettings {
+        PlayerSettings { window }
     }
 }

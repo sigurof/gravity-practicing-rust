@@ -8,5 +8,6 @@ edition = "2018"
 
 [dependencies]
 nalgebra = "^0.18.0"
-kiss3d = "0.21"
+kiss3d = {path = "../kiss3d"}
 derive_builder = "0.8.0"
+rand = "0.7.2"
