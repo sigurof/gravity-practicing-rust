@@ -1,5 +1,9 @@
-use crate::player::{Player, PlayerSettings};
-use crate::recording::SimpleRecording;
+mod entity;
+mod entity_with_recording;
+mod player;
+pub use {entity::Entity, entity_with_recording::EntityWithRecording, player::{Player, PlayerSettings}};
+use super::recording::SimpleRecording;
+
 use kiss3d::camera::{ArcBall, Camera, FirstPerson};
 use kiss3d::event::Key;
 use kiss3d::window::Window;
@@ -28,7 +32,7 @@ impl Visualization {
 
     pub fn from_recording(recording: SimpleRecording, window: &mut Window) {
         let playerSettings = PlayerSettings::of(window);
-        let mut player = Player::of(recording, playerSettings);
+        let mut player = Player::of(recording, window);
         Visualization::of(player, window);
     }
 }

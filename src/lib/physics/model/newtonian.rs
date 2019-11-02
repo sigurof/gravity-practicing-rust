@@ -1,22 +1,22 @@
-pub mod body;
+use super::super::gravity::body;
+use body::{BodyState};
 
-use body::BodyState;
 use nalgebra::Vector3 as v3;
 
-pub struct PhysicsModel {
+pub struct NewtonianModel {
     body_states: Vec<BodyState>,
-    settings: PhysicsSettings,
+    settings: NewtonianSettings,
 }
 
 #[derive(Default, Builder)]
 #[builder(setter(into))]
-pub struct PhysicsSettings {
+pub struct NewtonianSettings {
     g: f32,
 }
 
-impl PhysicsModel {
-    pub fn of(body_states: Vec<BodyState>, settings: PhysicsSettings) -> PhysicsModel {
-        PhysicsModel {
+impl NewtonianModel {
+    pub fn of(body_states: Vec<BodyState>, settings: NewtonianSettings) -> NewtonianModel {
+        NewtonianModel {
             body_states,
             settings,
         }
@@ -42,7 +42,7 @@ impl PhysicsModel {
     }
 }
 
-fn foreach_body_pair_add_force_contrib(model: &mut PhysicsModel) {
+fn foreach_body_pair_add_force_contrib(model: &mut NewtonianModel) {
     let n = model.body_states.len();
     for i in 0..n {
         for j in (i + 1)..n {
@@ -79,9 +79,9 @@ mod tests {
             v3::new(0.0, 0.0, 0.0),
             v3::new(0.0, 0.0, 0.0),
         );
-        let physics_settings = PhysicsSettingsBuilder::default().g(0.5).build().unwrap();
+        let physics_settings = NewtonianSettingsBuilder::default().g(0.5).build().unwrap();
         let body_states = vec![earth, moon];
-        let mut earth_and_moon = PhysicsModel::of(body_states, physics_settings);
+        let mut earth_and_moon = NewtonianModel::of(body_states, physics_settings);
         let expectedImage = vec![v3::new(0.0, 0.0, 0.0), v3::new(10.0, 0.0, 0.0)];
         assert_eq!(earth_and_moon.get_image(), expectedImage);
     }
@@ -109,8 +109,8 @@ mod tests {
         let f3 = v3::new(0.0, 0.0, 0.0);
         let b3 = BodyState::new(m3, r3, v3, a3, f3);
         let bs = vec![b1, b2, b3];
-        let settings = PhysicsSettingsBuilder::default().g(g).build().unwrap();
-        let mut model = PhysicsModel::of(bs, settings);
+        let settings = NewtonianSettingsBuilder::default().g(g).build().unwrap();
+        let mut model = NewtonianModel::of(bs, settings);
         model.single_step_by(0.5);
         assert_eq!(1, 1);
         /*         for i in 0..3 {
@@ -183,8 +183,8 @@ mod tests {
         let f3 = v3::new(0.0, 0.0, 0.0);
         let b3 = BodyState::new(m3, r3, v3, a3, f3);
         let bs = vec![b1, b2, b3];
-        let settings = PhysicsSettingsBuilder::default().g(g).build().unwrap();
-        let mut model = PhysicsModel::of(bs, settings);
+        let settings = NewtonianSettingsBuilder::default().g(g).build().unwrap();
+        let mut model = NewtonianModel::of(bs, settings);
 
         let expected_a1 = v3::new(2.0, 3.0, 0.0);
         let expected_a2 = ((3.0 / 2.0) * v3::new(-2.0_f32.sqrt(), 2.0_f32.sqrt(), 0.0)

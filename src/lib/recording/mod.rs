@@ -1,9 +1,7 @@
-mod recorded_entity;
 mod simple_recording;
-use crate::player::Entity;
+use crate::lib::visualization::Entity;
 use kiss3d::window::Window;
 use nalgebra::Vector3 as v3;
-pub use recorded_entity::RecordedEntity;
 pub use simple_recording::SimpleRecording;
 
 pub trait Recording {

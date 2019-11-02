@@ -1,9 +1,7 @@
-use super::{RecordedEntity, Recording, RecordingSettings};
-use crate::gravity::{
-    calculation::{Simulation, SimulationSettings, SimulationSettingsBuilder},
-    physics::{PhysicsModel, PhysicsSettingsBuilder},
-};
-use crate::player::Entity;
+use super::super::physics::simulation::Simulation;
+use super::super::visualization::{Entity, EntityWithRecording};
+use super::{Recording, RecordingSettings};
+
 use kiss3d::camera::Camera;
 use kiss3d::camera::FirstPerson;
 use kiss3d::scene::SceneNode;
@@ -26,7 +24,7 @@ impl Recording for SimpleRecording {
             let t = Translation3::from(self.get_images()[0][node_idx]);
             let mut obj = window.add_sphere(1.0);
             obj.set_local_translation(t);
-            let entity = RecordedEntity::of(
+            let entity = EntityWithRecording::of(
                 self.get_images()
                     .into_iter()
                     .map(|positions| positions[node_idx])
@@ -35,13 +33,6 @@ impl Recording for SimpleRecording {
             );
             nodes.push(Box::from(entity));
         }
-        /*         for positions in self.get_images() {
-            let t = Translation3::from(positions[]);
-            let mut obj = window.add_sphere(1.0);
-            obj.set_local_translation(t);
-            let entity = RecordedEntity::of(positions, obj);
-            nodes.push(Box::from(entity));
-        } */
         nodes
     }
 }
@@ -68,8 +59,12 @@ impl SimpleRecording {
 
 #[cfg(test)]
 mod tests {
+    use super::super::super::physics::{
+        gravity::body::BodyState,
+        model::{NewtonianModel, NewtonianSettingsBuilder},
+        simulation::{SimulationSettings, SimulationSettingsBuilder},
+    };
     use super::*;
-    use crate::gravity::{physics::body::BodyState, physics::PhysicsSettings};
 
     #[test]
     fn recording_settings_builder_works() {
@@ -109,9 +104,9 @@ mod tests {
             .build()
             .unwrap();
         let g = 600.67;
-        let physics_settings = PhysicsSettingsBuilder::default().g(g).build().unwrap();
+        let physics_settings = NewtonianSettingsBuilder::default().g(g).build().unwrap();
         let body_states_len = body_states.len();
-        let earth_and_moon = PhysicsModel::of(body_states, physics_settings);
+        let earth_and_moon = NewtonianModel::of(body_states, physics_settings);
         let simulation = Simulation::of(earth_and_moon, simulation_settings);
         let images =
             SimpleRecording::record_images_while_simulating(simulation, recording_settings);

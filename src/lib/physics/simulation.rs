@@ -1,8 +1,8 @@
-use crate::gravity::physics::PhysicsModel;
+use super::model::{NewtonianModel};
 
 pub struct Simulation {
     settings: SimulationSettings,
-    physics_model: PhysicsModel,
+    physics_model: NewtonianModel,
 }
 
 #[derive(Default, Builder)]
@@ -12,13 +12,13 @@ pub struct SimulationSettings {
 }
 
 impl Simulation {
-    pub fn of(physics_model: PhysicsModel, settings: SimulationSettings) -> Simulation {
+    pub fn of(physics_model: NewtonianModel, settings: SimulationSettings) -> Simulation {
         Simulation {
             settings,
             physics_model,
         }
     }
-    pub fn do_steps(&mut self, steps: usize) -> &PhysicsModel {
+    pub fn do_steps(&mut self, steps: usize) -> &NewtonianModel {
         for _ in 0..steps {
             self.single_step();
         }

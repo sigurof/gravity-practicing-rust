@@ -1,15 +1,12 @@
-pub mod calculation;
-pub mod physics;
+pub mod body;
+use body::{BodyState, BodyStateBuilder};
+
 use nalgebra::Vector3 as v3;
 use rand::thread_rng as rng;
 use rand::Rng;
 use std::f32::consts::PI;
 
-use crate::gravity::physics::body::{BodyState, BodyStateBuilder};
-
-
 pub fn get_sun_planet_moon(t1: f32, t2: f32, g: f32) -> Vec<BodyState> {
-
     let bary_pos = v3::new(0.0, 0.0, 0.0);
     let bary_vel = v3::new(0.0, 0.0, 0.0);
 
@@ -18,14 +15,13 @@ pub fn get_sun_planet_moon(t1: f32, t2: f32, g: f32) -> Vec<BodyState> {
     let m2: f32 = M - m1;
     let (b1, b2) = two_body_system(bary_pos, bary_vel, m1, m2, g, t1);
 
-    let m21 = 0.999*m2; 
-    let m22 = 0.001*m2;
+    let m21 = 0.999 * m2;
+    let m22 = 0.001 * m2;
     let (b21, b22) = two_body_system(b2.get_position(), b2.get_velocity(), m21, m22, g, t2);
     vec![b1, b21, b22]
 }
 
 pub fn get_one_orbiting_two(t12: f32, t2: f32, g: f32) -> Vec<BodyState> {
-
     let bary_pos = v3::new(0.0, 0.0, 0.0);
     let bary_vel = v3::new(0.0, 0.0, 0.0);
     let m = 100.0;
