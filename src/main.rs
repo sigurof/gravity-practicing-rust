@@ -14,7 +14,7 @@ use gravity::{
 };
 use kiss3d::window::Window;
 use player::{Player, PlayerSettings};
-use recording::{SimpleRecording, RecordingSettings};
+use recording::{RecordingSettings, SimpleRecording};
 use visualization::Visualization;
 
 fn main() {
@@ -68,6 +68,7 @@ fn main() {
     let mut simulation = Simulation::of(two_body_system, simulation_settings);
     let mut recording = SimpleRecording::of(simulation, recording_settings);
     let mut player = Player::of(recording, playerSettings);
+    player.connect_to(&mut window);
     // player.
     Visualization::of(player, &mut window);
 }
