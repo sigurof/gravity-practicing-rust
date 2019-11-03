@@ -21,10 +21,13 @@ impl<'a> Simulation<'a> {
             physics_model: Box::from(physics_model),
         }
     }
-    pub fn do_steps(&mut self, steps: usize) -> Box<dyn PhysicsModel + 'a> {
+    pub fn do_steps(&mut self, steps: usize) {
         for _ in 0..steps {
             self.single_step();
         }
+    }
+
+    pub fn get_physics_model(&self) -> Box<dyn PhysicsModel + 'a> {
         self.physics_model
     }
 

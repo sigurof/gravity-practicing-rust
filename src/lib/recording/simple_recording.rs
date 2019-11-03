@@ -48,10 +48,10 @@ impl SimpleRecording {
         mut simulation: Simulation,
         settings: RecordingSettings,
     ) -> Vec<Vec<v3<f32>>> {
-        let mut images: Vec<Vec<v3<f32>>> =
-            vec![(*simulation.do_steps(settings.steps_per_frame)).get_image()];
-        for _ in 0..(settings.number_of_frames - 1) {
-            images.push(simulation.do_steps(settings.steps_per_frame).get_image());
+        let mut images: Vec<Vec<v3<f32>>> = vec![];
+        for _ in 0..(settings.number_of_frames) {
+            simulation.do_steps(settings.steps_per_frame);
+            images.push(simulation.get_physics_model().get_image());
         }
         images
     }
