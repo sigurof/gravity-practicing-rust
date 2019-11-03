@@ -27,8 +27,8 @@ impl<'a> Simulation<'a> {
         }
     }
 
-    pub fn get_physics_model(&self) -> Box<dyn PhysicsModel + 'a> {
-        self.physics_model
+    pub fn get_physics_model(&self) -> &Box<dyn PhysicsModel + 'a> {
+        &self.physics_model
     }
 
     fn single_step(&mut self) {

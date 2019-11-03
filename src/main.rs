@@ -60,7 +60,7 @@ fn main() {
     let bodies = gravity::get_sun_planet_moon(100.0, 1.0, g);
 
     let physics_settings = NewtonianSettingsBuilder::default().g(g).build().unwrap();
-    let mut two_body_system = Box::from(NewtonianModel::of(bodies, physics_settings));
+    let mut two_body_system = NewtonianModel::of(bodies, physics_settings);
     // let mut earth_and_moon = NewtonianModel::of(vec![earth, moon, moon2, moon3], physics_settings);
     // let mut simulation = Simulation::of(earth_and_moon, simulation_settings);
     let mut simulation = Simulation::of(two_body_system, simulation_settings);

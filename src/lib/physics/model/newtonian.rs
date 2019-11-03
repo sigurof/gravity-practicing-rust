@@ -27,6 +27,13 @@ impl PhysicsModel for NewtonianModel {
             body_state.set_velocity(v);
         }
     }
+
+    fn get_image(&self) -> Vec<v3<f32>> {
+        self.body_states
+            .iter()
+            .map(|body| body.get_position())
+            .collect()
+    }
 }
 
 impl NewtonianModel {
@@ -35,13 +42,6 @@ impl NewtonianModel {
             body_states,
             settings,
         }
-    }
-
-    pub fn get_image(&self) -> Vec<v3<f32>> {
-        self.body_states
-            .iter()
-            .map(|body| body.get_position())
-            .collect()
     }
 }
 
