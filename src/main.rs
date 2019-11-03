@@ -16,37 +16,6 @@ use nalgebra::Vector3 as v3;
 use kiss3d::window::Window;
 
 fn main() {
-    let earth = BodyState::new(
-        1.0,
-        v3::new(0.0, 0.0, 0.0),
-        v3::new(0.0, 0.0, 0.0),
-        v3::new(0.0, 0.0, 0.0),
-        v3::new(0.0, 0.0, 0.0),
-    );
-
-    let moon = BodyState::new(
-        0.01,
-        v3::new(10.0, 0.0, 0.0),
-        v3::new(0.0, -0.3, 0.0),
-        v3::new(0.0, 0.0, 0.0),
-        v3::new(0.0, 0.0, 0.0),
-    );
-
-    let moon2 = BodyState::new(
-        0.01,
-        v3::new(0.0, 5.0, 0.0),
-        v3::new(0.4, 0.0, 0.0),
-        v3::new(0.0, 0.0, 0.0),
-        v3::new(0.0, 0.0, 0.0),
-    );
-
-    let moon3 = BodyState::new(
-        0.01,
-        v3::new(0.0, -5.0, 0.0),
-        v3::new(0.0, 0.0, 0.35),
-        v3::new(0.0, 0.0, 0.0),
-        v3::new(0.0, 0.0, 0.0),
-    );
     let recording_settings = RecordingSettings::new()
         .with_steps_per_frame(10)
         .with_number_of_frames(20000);
