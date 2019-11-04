@@ -1,7 +1,6 @@
 mod lib;
 use lib::physics::gravity;
-use lib::physics::gravity::body::BodyState;
-use lib::physics::model::{NewtonianModel, NewtonianSettingsBuilder};
+use lib::physics::model::{NewtonianModel2, NewtonianSettings2Builder};
 use lib::physics::simulation::Simulation;
 use lib::physics::simulation::SimulationSettingsBuilder;
 use lib::recording::RecordingSettings;
@@ -28,13 +27,14 @@ fn main() {
     let g = 0.667;
     let bodies = gravity::get_sun_planet_moon(100.0, 1.0, g);
 
-    let physics_settings = NewtonianSettingsBuilder::default().g(g).build().unwrap();
-    let mut two_body_system = NewtonianModel::of(bodies, physics_settings);
+    let physics_settings = NewtonianSettings2Builder::default().g(g).build().unwrap();
+    let mut two_body_system = NewtonianModel2::of(bodies, physics_settings);
     // let mut earth_and_moon = NewtonianModel::of(vec![earth, moon, moon2, moon3], physics_settings);
     // let mut simulation = Simulation::of(earth_and_moon, simulation_settings);
-    let mut simulation = Simulation::of(two_body_system, simulation_settings);
-    let mut recording = SimpleRecording::of(simulation, recording_settings);
-    let mut player = Player::of(recording, &mut window);
+    let simulation = Simulation::of(two_body_system, simulation_settings);
+    let recording = SimpleRecording::of(simulation, recording_settings);
+    let player = Player::of(recording, &mut window);
+    // player.create_entity()
     // player.
     Visualization::of(player, &mut window);
 }

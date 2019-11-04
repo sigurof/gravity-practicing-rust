@@ -31,8 +31,7 @@ impl Visualization {
     }
 
     pub fn from_recording(recording: SimpleRecording, window: &mut Window) {
-        let playerSettings = PlayerSettings::of(window);
-        let mut player = Player::of(recording, window);
+        let player = Player::of(recording, window);
         Visualization::of(player, window);
     }
 }

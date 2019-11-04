@@ -60,8 +60,8 @@ impl SimpleRecording {
 #[cfg(test)]
 mod tests {
     use super::super::super::physics::{
-        gravity::body::BodyState,
-        model::{NewtonianModel, NewtonianSettingsBuilder},
+        model::old_newton::body::BodyState,
+        model::old_newton::{NewtonianModel, NewtonianSettingsBuilder},
         simulation::{SimulationSettings, SimulationSettingsBuilder},
     };
     use super::*;

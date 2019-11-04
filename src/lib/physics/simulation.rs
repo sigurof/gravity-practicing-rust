@@ -1,4 +1,4 @@
-use super::model::{NewtonianModel, PhysicsModel};
+use super::model::{old_newton::NewtonianModel, PhysicsModel};
 
 pub struct Simulation<'a> {
     settings: SimulationSettings,

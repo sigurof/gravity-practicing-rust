@@ -1,63 +1,115 @@
-use super::super::gravity::body;
+use super::super::PointMass;
 use super::PhysicsModel;
-use body::BodyState;
 
 use nalgebra::Vector3 as v3;
 
-pub struct NewtonianModel {
-    body_states: Vec<BodyState>,
-    settings: NewtonianSettings,
+struct BodyState2 {
+    m: f32,
+    r: v3<f32>,
+    v: v3<f32>,
+    a: v3<f32>,
+}
+
+impl BodyState2 {
+    fn from_point_mass(point_mass: &PointMass) -> BodyState2 {
+        BodyState2 {
+            m: point_mass.m,
+            r: point_mass.r,
+            v: point_mass.v,
+            a: v3::new(0.0, 0.0, 0.0),
+        }
+    }
+}
+
+struct UniqueIndexPairs {
+    i: usize,
+    j: usize,
+    max: usize,
+}
+
+impl UniqueIndexPairs {
+    fn up_to(max: usize) -> UniqueIndexPairs {
+        UniqueIndexPairs { i: 0, j: 1, max }
+    }
+}
+
+impl Iterator for UniqueIndexPairs {
+    type Item = (usize, usize);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let i = self.i;
+        let j = self.j;
+
+        if self.i == self.max {
+            return None;
+        }
+        if self.j == self.max {
+            self.i += 1;
+            self.j = self.i + 1;
+        } else {
+            self.j += 1;
+        }
+        return Some((i, j));
+    }
+}
+
+pub struct NewtonianModel2 {
+    bodies: Vec<BodyState2>,
+    settings: NewtonianSettings2,
 }
 
 #[derive(Default, Builder)]
 #[builder(setter(into))]
-pub struct NewtonianSettings {
+pub struct NewtonianSettings2 {
     g: f32,
 }
 
-impl PhysicsModel for NewtonianModel {
+fn force(on: &BodyState2, from: &BodyState2, g: f32) -> v3<f32> {
+    let d12 = from.r - on.r;
+    let d = d12.normalize() / d12.norm_squared();
+    g * on.m * from.m * d
+}
+
+fn newtonian_step(b: &BodyState2, dt: f32) -> (v3<f32>, v3<f32>) {
+    let r = b.r + b.v * dt + 0.5 * b.a * dt * dt;
+    let v = b.v + b.a * dt;
+    (r, v)
+}
+
+impl PhysicsModel for NewtonianModel2 {
     fn single_step_by(&mut self, dt: f32) {
-        for body_state in &mut self.body_states {
-            body_state.reset_force();
+        self.zero_out_forces();
+        for (i, j) in UniqueIndexPairs::up_to(self.bodies.len() - 1) {
+            let f = force(&self.bodies[i], &self.bodies[j], self.settings.g);
+            self.bodies[i].a += f;
+            self.bodies[j].a -= f;
         }
-        foreach_body_pair_add_force_contrib(self);
-        for body_state in &mut self.body_states {
-            let (r, v) = body::get_new_pos_and_vel_by_newton(body_state, dt);
-            body_state.set_position(r);
-            body_state.set_velocity(v);
+        for body in &mut self.bodies {
+            body.a /= body.m;
+            let (r, v) = newtonian_step(body, dt);
+            body.r = r;
+            body.v = v;
         }
     }
 
     fn get_image(&self) -> Vec<v3<f32>> {
-        self.body_states
+        self.bodies.iter().map(|body| body.r).collect()
+    }
+}
+
+impl NewtonianModel2 {
+    pub fn of(point_masses: Vec<PointMass>, settings: NewtonianSettings2) -> NewtonianModel2 {
+        let bodies = point_masses
             .iter()
-            .map(|body| body.get_position())
-            .collect()
+            .map(|pm| BodyState2::from_point_mass(pm))
+            .collect();
+        NewtonianModel2 { bodies, settings }
     }
-}
 
-impl NewtonianModel {
-    pub fn of(body_states: Vec<BodyState>, settings: NewtonianSettings) -> NewtonianModel {
-        NewtonianModel {
-            body_states,
-            settings,
+    fn zero_out_forces(&mut self) {
+        for body in &mut self.bodies {
+            body.a = v3::new(0.0, 0.0, 0.0);
         }
-    }
-}
-
-fn foreach_body_pair_add_force_contrib(model: &mut NewtonianModel) {
-    let n = model.body_states.len();
-    for i in 0..n {
-        for j in (i + 1)..n {
-            let f = model.body_states[i].get_force_from(&model.body_states[j], model.settings.g);
-            model.body_states[i].add_force(f);
-            model.body_states[j].add_force(-f);
-        }
-        /* finished with loop i, I know I have accounted for
-        all the force contributions to body[i], so I now have the
-        sum of forces on body i. Now I can find the acceleration
-        by dividing on the body mass of i */
-        model.body_states[i].set_acceleration_from_force()
     }
 }
 
@@ -66,154 +118,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn get_image() {
-        let earth = BodyState::new(
-            1.0,
-            v3::new(0.0, 0.0, 0.0),
-            v3::new(0.0, 0.0, 0.0),
-            v3::new(0.0, 0.0, 0.0),
-            v3::new(0.0, 0.0, 0.0),
-        );
-
-        let moon = BodyState::new(
-            0.1,
-            v3::new(10.0, 0.0, 0.0),
-            v3::new(0.0, -0.3, 0.0),
-            v3::new(0.0, 0.0, 0.0),
-            v3::new(0.0, 0.0, 0.0),
-        );
-        let physics_settings = NewtonianSettingsBuilder::default().g(0.5).build().unwrap();
-        let body_states = vec![earth, moon];
-        let mut earth_and_moon = NewtonianModel::of(body_states, physics_settings);
-        let expectedImage = vec![v3::new(0.0, 0.0, 0.0), v3::new(10.0, 0.0, 0.0)];
-        assert_eq!(earth_and_moon.get_image(), expectedImage);
-    }
-
-    #[test]
-    fn single_step_by_changes_the_state() {
-        let dt = 10.0;
-        let g = 1.0;
-        let m1 = 1.0;
-        let r1 = v3::new(0.0, 0.0, 0.0);
-        let v1 = v3::new(0.0, 0.0, 0.0);
-        let a1 = v3::new(0.0, 0.0, 0.0);
-        let f1 = v3::new(0.0, 0.0, 0.0);
-        let b1 = BodyState::new(m1, r1, v1, a1, f1);
-        let m2 = 2.0;
-        let r2 = v3::new(1.0, 0.0, 0.0);
-        let v2 = v3::new(0.0, 0.0, 0.0);
-        let a2 = v3::new(0.0, 0.0, 0.0);
-        let f2 = v3::new(0.0, 0.0, 0.0);
-        let b2 = BodyState::new(m2, r2, v2, a2, f2);
-        let m3 = 3.0;
-        let r3 = v3::new(0.0, 1.0, 0.0);
-        let v3 = v3::new(0.0, 0.0, 0.0);
-        let a3 = v3::new(0.0, 0.0, 0.0);
-        let f3 = v3::new(0.0, 0.0, 0.0);
-        let b3 = BodyState::new(m3, r3, v3, a3, f3);
-        let bs = vec![b1, b2, b3];
-        let settings = NewtonianSettingsBuilder::default().g(g).build().unwrap();
-        let mut model = NewtonianModel::of(bs, settings);
-        model.single_step_by(0.5);
-        assert_eq!(1, 1);
-        /*         for i in 0..3 {
-            assert_ne!(
-                model.body_states[i].get_acceleration(),
-                a1,
-                "assert acceleration of body {} changed",
-                i
-            );
-            assert_ne!(
-                model.body_states[i].get_velocity(),
-                v1,
-                "assert velocity of body {} changed",
-                i
-            );
-            assert_ne!(
-                model.body_states[i].get_position(),
-                r1,
-                "assert position of body {} changed",
-                i
-            );
-        } */
-    }
-
-    #[test]
-    fn test_that_function_sums_force_contributions_correctly() {
-        /*
-        b1 + b2:
-        F = G * m1*m2*norm(d12)/square_norm(d12)
-        d12 = r2 - r1 = [1, 0, 0]
-        m1 = 1, m2 = 2, G = 1.0
-        F = 1.0 * 1.0 * 2.0 * [1, 0, 0] = [2, 0, 0]
-        a1 =  [2, 0, 0] / 1.0 =  [2, 0, 0]
-        a2 = -[2, 0, 0] / 2.0 = -[1, 0, 0]
-
-        b1 + b3
-        d13 = r3 - r1 = [0, 1, 0]
-        m1 = 1, m3 = 3, G = 1.0
-        F = 1.0 * 1.0 * 3.0 * [0, 1, 0] = [0, 3, 0]
-        ____ a1 =  [0, 3, 0] / 1.0 + [2, 0, 0] =  [2, 3, 0] ____
-        a3 = -[0, 3, 0] / 3.0             = -[0, 1, 0]
-
-        b2 + b3
-        b2 + b3
-        d23 = r3 - r2 = [0, 1, 0] - [1, 0, 0] = [-1, 1, 0]
-        m2 = 2, m3 = 3, G = 1.0
-        F = 1.0 * 2.0 * 3.0 * [-sqrt(2)/2, sqrt(2)/2, 0] / 2 = 3/2*[-sqrt(2), sqrt(2), 0]
-        ____ a2 =  3/2*[-sqrt(2), sqrt(2), 0] / 2.0 - [1, 0, 0] =  3/4*[-sqrt(2), sqrt(2), 0] - [1, 0, 0]____
-        ____ a3 = -3/2*[-sqrt(2), sqrt(2), 0] / 3.0 - [0, 1, 0] = -1/2*[-sqrt(2), sqrt(2), 0] - [0, 1, 0]____
-         */
-        let g = 1.0;
-        let m1 = 1.0;
-        let r1 = v3::new(0.0, 0.0, 0.0);
-        let v1 = v3::new(0.0, 0.0, 0.0);
-        let a1 = v3::new(0.0, 0.0, 0.0);
-        let f1 = v3::new(0.0, 0.0, 0.0);
-        let b1 = BodyState::new(m1, r1, v1, a1, f1);
-
-        let m2 = 2.0;
-        let r2 = v3::new(1.0, 0.0, 0.0);
-        let v2 = v3::new(0.0, 0.0, 0.0);
-        let a2 = v3::new(0.0, 0.0, 0.0);
-        let f2 = v3::new(0.0, 0.0, 0.0);
-        let b2 = BodyState::new(m2, r2, v2, a2, f2);
-
-        let m3 = 3.0;
-        let r3 = v3::new(0.0, 1.0, 0.0);
-        let v3 = v3::new(0.0, 0.0, 0.0);
-        let a3 = v3::new(0.0, 0.0, 0.0);
-        let f3 = v3::new(0.0, 0.0, 0.0);
-        let b3 = BodyState::new(m3, r3, v3, a3, f3);
-        let bs = vec![b1, b2, b3];
-        let settings = NewtonianSettingsBuilder::default().g(g).build().unwrap();
-        let mut model = NewtonianModel::of(bs, settings);
-
-        let expected_a1 = v3::new(2.0, 3.0, 0.0);
-        let expected_a2 = ((3.0 / 2.0) * v3::new(-2.0_f32.sqrt(), 2.0_f32.sqrt(), 0.0)
-            - v3::new(2.0, 0.0, 0.0))
-            / 2.0;
-        let expected_a3 = (-(3.0 / 2.0) * v3::new(-2.0_f32.sqrt(), 2.0_f32.sqrt(), 0.0)
-            - v3::new(0.0, 3.0, 0.0))
-            / 3.0;
-
-        foreach_body_pair_add_force_contrib(&mut model);
-
-        assert_eq!(1, 1);
-        /*         assert_eq!(
-            model.body_states[0].get_acceleration(),
-            expected_a1,
-            "failed for body no. 1"
-        );
-        assert_eq!(
-            model.body_states[1].get_acceleration(),
-            expected_a2,
-            "failed for body no. 2"
-        );
-        assert_eq!(
-            model.body_states[2].get_acceleration(),
-            expected_a3,
-            "failed for body no. 3"
-        ); */
+    fn unique_pairs() {
+        let expected_pairs = [(0, 1), (0, 2), (1, 2)];
+        let mut idx = 0;
+        let mut unique_pairs = UniqueIndexPairs::up_to(2);
+        assert_eq!(unique_pairs.next(), Some(expected_pairs[0]));
+        assert_eq!(unique_pairs.next(), Some(expected_pairs[1]));
+        assert_eq!(unique_pairs.next(), Some(expected_pairs[2]));
     }
 }

@@ -1,27 +1,27 @@
-pub mod body;
-use body::{BodyState, BodyStateBuilder};
+use super::{PointMass, PointMassBuilder};
+// use body::{PointMass, PointMassBuilder};
 
 use nalgebra::Vector3 as v3;
 use rand::thread_rng as rng;
 use rand::Rng;
 use std::f32::consts::PI;
 
-pub fn get_sun_planet_moon(t1: f32, t2: f32, g: f32) -> Vec<BodyState> {
+pub fn get_sun_planet_moon(t1: f32, t2: f32, g: f32) -> Vec<PointMass> {
     let bary_pos = v3::new(0.0, 0.0, 0.0);
     let bary_vel = v3::new(0.0, 0.0, 0.0);
 
-    let M = 100.0;
+    let m = 100.0;
     let m1: f32 = 99.0;
-    let m2: f32 = M - m1;
+    let m2: f32 = m - m1;
     let (b1, b2) = two_body_system(bary_pos, bary_vel, m1, m2, g, t1);
 
     let m21 = 0.999 * m2;
     let m22 = 0.001 * m2;
-    let (b21, b22) = two_body_system(b2.get_position(), b2.get_velocity(), m21, m22, g, t2);
+    let (b21, b22) = two_body_system(b2.r, b2.v, m21, m22, g, t2);
     vec![b1, b21, b22]
 }
 
-pub fn get_one_orbiting_two(t12: f32, t2: f32, g: f32) -> Vec<BodyState> {
+pub fn get_one_orbiting_two(t12: f32, t2: f32, g: f32) -> Vec<PointMass> {
     let bary_pos = v3::new(0.0, 0.0, 0.0);
     let bary_vel = v3::new(0.0, 0.0, 0.0);
     let m = 100.0;
@@ -32,11 +32,11 @@ pub fn get_one_orbiting_two(t12: f32, t2: f32, g: f32) -> Vec<BodyState> {
 
     let m11 = random_between(0.3 * m1, 0.7 * m1);
     let m12 = m1 - m11;
-    let (b11, b12) = two_body_system(b1.get_position(), b1.get_velocity(), m11, m12, g, t12);
+    let (b11, b12) = two_body_system(b1.r, b1.v, m11, m12, g, t12);
     vec![b11, b12, b2]
 }
 
-pub fn poc_create_two_body_system(g: f32) -> (BodyState, BodyState) {
+pub fn poc_create_two_body_system(g: f32) -> (PointMass, PointMass) {
     // All values describe initial values
     // bary = barycenter
     // Choose G
@@ -56,7 +56,7 @@ pub fn two_body_system(
     m2: f32,
     g: f32,
     t: f32,
-) -> (BodyState, BodyState) {
+) -> (PointMass, PointMass) {
     let mu = m1 * m2 / (m1 + m2);
     let (r_vec, v_vec) = get_central_force_problem_position_and_velocity(g, m1, m2, t);
     println!("Distance vector was {:?}", r_vec);
@@ -67,14 +67,14 @@ pub fn two_body_system(
     let r2_vec = bary_pos - mu / m2 * r_vec;
     let v2_vec = bary_vel - mu / m2 * v_vec;
 
-    let b1 = BodyStateBuilder::default()
+    let b1 = PointMassBuilder::default()
         .m(m1)
         .r(r1_vec)
         .v(v1_vec)
         .build()
         .unwrap();
 
-    let b2 = BodyStateBuilder::default()
+    let b2 = PointMassBuilder::default()
         .m(m2)
         .r(r2_vec)
         .v(v2_vec)
@@ -126,17 +126,17 @@ fn random_v3() -> v3<f32> {
     v3::new(x, y, z)
 }
 
-fn calculate_energy(b1: BodyState, b2: BodyState, g: f32) -> f32 {
-    let distance = (b1.get_position() - b2.get_position()).norm();
-    let m1 = b1.get_mass();
-    let m2 = b2.get_mass();
-    let v1 = b1.get_velocity();
-    let v2 = b2.get_velocity();
+fn calculate_energy(b1: PointMass, b2: PointMass, g: f32) -> f32 {
+    let distance = (b1.r - b2.r).norm();
+    let m1 = b1.m;
+    let m2 = b2.m;
+    let v1 = b1.v;
+    let v2 = b2.v;
     0.5 * m1 * v1.norm_squared() + 0.5 * m2 * v2.norm_squared() - g * m1 * m2 / distance
 }
 
-fn momentum(b: BodyState) -> v3<f32> {
-    b.get_mass() * b.get_velocity()
+fn momentum(b: PointMass) -> v3<f32> {
+    b.m * b.v
 }
 
 fn potential(g: f32, m1: f32, m2: f32, distance: v3<f32>) -> f32 {
@@ -160,13 +160,13 @@ mod tests {
 
         let expected_energy =
             0.5 * (m1 * v1.norm_squared() + m2 * v2.norm_squared()) + potential(g, m1, m2, r2 - r1);
-        let b1 = BodyStateBuilder::default()
+        let b1 = PointMassBuilder::default()
             .m(m1)
             .r(r1)
             .v(v1)
             .build()
             .unwrap();
-        let b2 = BodyStateBuilder::default()
+        let b2 = PointMassBuilder::default()
             .m(m2)
             .r(r2)
             .v(v2)

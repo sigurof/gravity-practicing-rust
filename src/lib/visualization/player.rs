@@ -18,7 +18,7 @@ pub struct PlayerSettings<'a> {
 
 impl Player {
     pub fn of(recording: impl Recording, window: &mut Window) -> Player {
-        let mut player = Player {
+        let player = Player {
             number_of_images: recording.get_images().len(),
             nodes: recording.build_entities(window),
             current_frame: 0,

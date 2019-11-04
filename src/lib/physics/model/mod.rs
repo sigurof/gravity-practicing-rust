@@ -1,6 +1,7 @@
 mod newtonian;
+pub mod old_newton;
 use nalgebra::Vector3 as v3;
-pub use newtonian::{NewtonianModel, NewtonianSettings, NewtonianSettingsBuilder};
+pub use newtonian::{NewtonianModel2, NewtonianSettings2, NewtonianSettings2Builder};
 
 pub trait PhysicsModel {
     fn single_step_by(&mut self, dt: f32);
