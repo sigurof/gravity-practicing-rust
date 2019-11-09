@@ -15,7 +15,7 @@ pub struct NewtonianSettings {
     g: f32,
 }
 
-impl PhysicsModel for NewtonianModel {
+impl PhysicsModel<Vec<BodyState>> for NewtonianModel {
     fn single_step_by(&mut self, dt: f32) {
         for body_state in &mut self.body_states {
             body_state.reset_force();
@@ -28,12 +28,16 @@ impl PhysicsModel for NewtonianModel {
         }
     }
 
-    fn get_image(&self) -> Vec<v3<f32>> {
+    fn expose_state(&self) -> &Vec<BodyState> {
+        &self.body_states
+    }
+
+/*     fn get_image(&self) -> Vec<v3<f32>> {
         self.body_states
             .iter()
             .map(|body| body.get_position())
             .collect()
-    }
+    } */
 }
 
 impl NewtonianModel {
@@ -65,8 +69,8 @@ fn foreach_body_pair_add_force_contrib(model: &mut NewtonianModel) {
 mod tests {
     use super::*;
 
-    #[test]
-    fn get_image() {
+    // #[test]
+/*     fn get_image() {
         let earth = BodyState::new(
             1.0,
             v3::new(0.0, 0.0, 0.0),
@@ -87,7 +91,7 @@ mod tests {
         let mut earth_and_moon = NewtonianModel::of(body_states, physics_settings);
         let expectedImage = vec![v3::new(0.0, 0.0, 0.0), v3::new(10.0, 0.0, 0.0)];
         assert_eq!(earth_and_moon.get_image(), expectedImage);
-    }
+    } */
 
     #[test]
     fn single_step_by_changes_the_state() {

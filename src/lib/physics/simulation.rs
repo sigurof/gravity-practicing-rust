@@ -1,8 +1,8 @@
 use super::model::{old_newton::NewtonianModel, PhysicsModel};
 
-pub struct Simulation<'a> {
+pub struct Simulation<'a, T> {
     settings: SimulationSettings,
-    physics_model: Box<dyn PhysicsModel + 'a>,
+    physics_model: Box<dyn PhysicsModel<T> + 'a>,
 }
 
 #[derive(Default, Builder)]
@@ -11,11 +11,11 @@ pub struct SimulationSettings {
     dt: f32,
 }
 
-impl<'a> Simulation<'a> {
+impl<'a, T> Simulation<'a, T> {
     pub fn of(
-        physics_model: impl PhysicsModel + 'a,
+        physics_model: impl PhysicsModel<T> + 'a,
         settings: SimulationSettings,
-    ) -> Simulation<'a> {
+    ) -> Simulation<'a, T> {
         Simulation {
             settings,
             physics_model: Box::from(physics_model),
@@ -27,7 +27,11 @@ impl<'a> Simulation<'a> {
         }
     }
 
-    pub fn get_physics_model(&self) -> &Box<dyn PhysicsModel + 'a> {
+    pub fn expose_state(&self) -> &T {
+        self.physics_model.expose_state()
+    }
+
+    pub fn get_physics_model(&self) -> &Box<dyn PhysicsModel<T> + 'a> {
         &self.physics_model
     }
 

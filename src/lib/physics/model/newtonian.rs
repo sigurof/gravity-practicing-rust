@@ -3,14 +3,30 @@ use super::PhysicsModel;
 
 use nalgebra::Vector3 as v3;
 
-struct BodyState2 {
+#[derive(Builder)]
+#[builder(setter(into))]
+pub struct BodyState2 {
     m: f32,
     r: v3<f32>,
     v: v3<f32>,
     a: v3<f32>,
 }
 
+impl BodyState2Builder {
+    pub fn default() -> BodyState2Builder {
+        BodyState2Builder {
+            m: Some(0.0),
+            r: Some(v3::new(0.0, 0.0, 0.0)),
+            v: Some(v3::new(0.0, 0.0, 0.0)),
+            a: Some(v3::new(0.0, 0.0, 0.0)),
+        }
+    }
+}
+
 impl BodyState2 {
+    pub fn default() -> BodyState2Builder {
+        BodyState2Builder::default()
+    }
     fn from_point_mass(point_mass: &PointMass) -> BodyState2 {
         BodyState2 {
             m: point_mass.m,
@@ -18,6 +34,22 @@ impl BodyState2 {
             v: point_mass.v,
             a: v3::new(0.0, 0.0, 0.0),
         }
+    }
+
+    pub fn get_mass(&self) -> f32 {
+        self.m
+    }
+
+    pub fn get_position(&self) -> v3<f32> {
+        self.r
+    }
+
+    pub fn get_velocity(&self) -> v3<f32> {
+        self.v
+    }
+
+    pub fn get_acceleration(&self) -> v3<f32> {
+        self.a
     }
 }
 
@@ -76,7 +108,7 @@ fn newtonian_step(b: &BodyState2, dt: f32) -> (v3<f32>, v3<f32>) {
     (r, v)
 }
 
-impl PhysicsModel for NewtonianModel2 {
+impl PhysicsModel<Vec<BodyState2>> for NewtonianModel2 {
     fn single_step_by(&mut self, dt: f32) {
         self.zero_out_forces();
         for (i, j) in UniqueIndexPairs::up_to(self.bodies.len() - 1) {
@@ -92,13 +124,17 @@ impl PhysicsModel for NewtonianModel2 {
         }
     }
 
-    fn get_image(&self) -> Vec<v3<f32>> {
-        self.bodies.iter().map(|body| body.r).collect()
+    fn expose_state(&self) -> &Vec<BodyState2> {
+        &self.bodies
     }
+
+    /*     fn get_image(&self) -> &Vec<BodyState2> {
+        self.bodies.iter().map(|body| body.r).collect()
+    } */
 }
 
 impl NewtonianModel2 {
-    pub fn of(point_masses: Vec<PointMass>, settings: NewtonianSettings2) -> NewtonianModel2 {
+    pub fn of(point_masses: &Vec<PointMass>, settings: NewtonianSettings2) -> NewtonianModel2 {
         let bodies = point_masses
             .iter()
             .map(|pm| BodyState2::from_point_mass(pm))

@@ -1,26 +1,40 @@
 use super::{PointMass, PointMassBuilder};
 // use body::{PointMass, PointMassBuilder};
 
+use crate::lib::util::random::{random_between, random_angle, random_v3};
 use nalgebra::Vector3 as v3;
-use rand::thread_rng as rng;
-use rand::Rng;
 use std::f32::consts::PI;
 
+#[allow(dead_code)]
 pub fn get_sun_planet_moon(t1: f32, t2: f32, g: f32) -> Vec<PointMass> {
+    let m = 100.0;
+    let m2 = 1.0;
+    let m21 = 0.1 * m2;
+    let m22 = 0.9 * m2;
+    let m1 = m - m2;
+
+    get_sun_planet_moon_more_parameters(t1, t2, g, m1, m21, m22)
+}
+
+pub fn get_sun_planet_moon_more_parameters(
+    t1: f32,
+    t2: f32,
+    g: f32,
+    m1: f32,
+    m21: f32,
+    m22: f32,
+) -> Vec<PointMass> {
     let bary_pos = v3::new(0.0, 0.0, 0.0);
     let bary_vel = v3::new(0.0, 0.0, 0.0);
 
-    let m = 100.0;
-    let m1: f32 = 99.0;
-    let m2: f32 = m - m1;
+    let m2: f32 = m21 + m22;
     let (b1, b2) = two_body_system(bary_pos, bary_vel, m1, m2, g, t1);
 
-    let m21 = 0.999 * m2;
-    let m22 = 0.001 * m2;
     let (b21, b22) = two_body_system(b2.r, b2.v, m21, m22, g, t2);
     vec![b1, b21, b22]
 }
 
+#[allow(dead_code)]
 pub fn get_one_orbiting_two(t12: f32, t2: f32, g: f32) -> Vec<PointMass> {
     let bary_pos = v3::new(0.0, 0.0, 0.0);
     let bary_vel = v3::new(0.0, 0.0, 0.0);
@@ -36,6 +50,7 @@ pub fn get_one_orbiting_two(t12: f32, t2: f32, g: f32) -> Vec<PointMass> {
     vec![b11, b12, b2]
 }
 
+#[allow(dead_code)]
 pub fn poc_create_two_body_system(g: f32) -> (PointMass, PointMass) {
     // All values describe initial values
     // bary = barycenter
@@ -59,7 +74,6 @@ pub fn two_body_system(
 ) -> (PointMass, PointMass) {
     let mu = m1 * m2 / (m1 + m2);
     let (r_vec, v_vec) = get_central_force_problem_position_and_velocity(g, m1, m2, t);
-    println!("Distance vector was {:?}", r_vec);
 
     let r1_vec = bary_pos + mu / m1 * r_vec;
     let v1_vec = bary_vel + mu / m1 * v_vec;
@@ -91,7 +105,7 @@ fn get_central_force_problem_position_and_velocity(
 ) -> (v3<f32>, v3<f32>) {
     // calculate mu for later:
     let mu: f32 = m1 * m2 / (m1 + m2);
-    let M = m1 + m2;
+    let m = m1 + m2;
 
     let r_hat = random_v3().normalize();
     let theta_hat = r_hat.cross(&random_v3()).normalize();
@@ -101,7 +115,7 @@ fn get_central_force_problem_position_and_velocity(
     let gamma = g * m1 * m2;
 
     // let l = mu * f32::powf(G * G * M * M / 2.0 / T, 1.0 / 3.0) * f32::sqrt(1.0 - e * e);
-    let l = m1 * m2 * f32::powf(g * g * t / 2.0 / PI / M, 1.0 / 3.0) / f32::sqrt(1.0 - e * e);
+    let l = m1 * m2 * f32::powf(g * g * t / 2.0 / PI / m, 1.0 / 3.0) / f32::sqrt(1.0 - e * e);
 
     let r_vec = (l * l / mu / gamma) / (1.0 + e * f32::cos(theta)) * r_hat;
     let v_vec =
@@ -109,23 +123,8 @@ fn get_central_force_problem_position_and_velocity(
     return (r_vec, v_vec);
 }
 
-fn random_between(min: f32, max: f32) -> f32 {
-    let between_0_and_1: f32 = rng().gen();
-    min + (max - min) * between_0_and_1
-}
 
-fn random_angle() -> f32 {
-    let between_0_and_1: f32 = rng().gen();
-    between_0_and_1 * 2.0 * PI
-}
-
-fn random_v3() -> v3<f32> {
-    let x = rng().gen();
-    let y = rng().gen();
-    let z = rng().gen();
-    v3::new(x, y, z)
-}
-
+#[allow(dead_code)]
 fn calculate_energy(b1: PointMass, b2: PointMass, g: f32) -> f32 {
     let distance = (b1.r - b2.r).norm();
     let m1 = b1.m;
@@ -135,10 +134,12 @@ fn calculate_energy(b1: PointMass, b2: PointMass, g: f32) -> f32 {
     0.5 * m1 * v1.norm_squared() + 0.5 * m2 * v2.norm_squared() - g * m1 * m2 / distance
 }
 
+#[allow(dead_code)]
 fn momentum(b: PointMass) -> v3<f32> {
     b.m * b.v
 }
 
+#[allow(dead_code)]
 fn potential(g: f32, m1: f32, m2: f32, distance: v3<f32>) -> f32 {
     -g * m1 * m2 / distance.norm()
 }

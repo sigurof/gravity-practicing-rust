@@ -8,6 +8,12 @@ pub struct PointMass {
     pub v: v3<f32>,
 }
 
+impl PointMass {
+    pub fn default() -> PointMassBuilder {
+        PointMassBuilder::default()
+    }
+}
+
 impl PointMassBuilder {
     pub fn default() -> PointMassBuilder {
         PointMassBuilder {

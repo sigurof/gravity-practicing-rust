@@ -1,36 +1,39 @@
 mod simple_recording;
-use crate::lib::visualization::Entity;
+use super::physics::simulation::Simulation;
+use crate::lib::visualization::GameObject;
 use kiss3d::window::Window;
 use nalgebra::Vector3 as v3;
 pub use simple_recording::SimpleRecording;
 
-pub trait Recording {
-    fn build_entities(self, window: &mut Window) -> Vec<Box<dyn Entity>>;
+pub trait Recorder<State, Image> {
+    fn time_evolution_per_body(&self) -> Vec<Image>;
 
-    fn get_images(&self) -> &Vec<Vec<v3<f32>>>;
+    fn record_images_while_simulating(
+        &self,
+        mut simulation: Simulation<State>,
+        settings: RecordingSettings,
+    ) -> Vec<Image> {
+        let mut images: Vec<Image> = vec![];
+        for _ in 0..(settings.number_of_frames) {
+            simulation.do_steps(settings.steps_per_frame);
+            let image = self.state_to_image(simulation.expose_state());
+            images.push(image);
+        }
+        images
+    }
+
+    fn state_to_image(&self, state: &State) -> Image;
 }
 
+#[derive(Builder, Default)]
+#[builder(setter(into))]
 pub struct RecordingSettings {
     steps_per_frame: usize,
     number_of_frames: usize,
 }
+
 impl RecordingSettings {
-    pub fn new() -> RecordingSettings {
-        RecordingSettings {
-            steps_per_frame: 0,
-            number_of_frames: 0,
-        }
-    }
-    pub fn with_steps_per_frame(self, steps_per_frame: usize) -> RecordingSettings {
-        RecordingSettings {
-            steps_per_frame,
-            ..self
-        }
-    }
-    pub fn with_number_of_frames(self, number_of_frames: usize) -> RecordingSettings {
-        RecordingSettings {
-            number_of_frames,
-            ..self
-        }
+    pub fn default() -> RecordingSettingsBuilder {
+        RecordingSettingsBuilder::default()
     }
 }
