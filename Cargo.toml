@@ -11,3 +11,5 @@ nalgebra = "^0.18.0"
 kiss3d = {path = "../kiss3d"}
 derive_builder = "0.8.0"
 rand = "0.7.2"
+glutin="0.19.0"
+gl="0.11.0"

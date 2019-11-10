@@ -26,17 +26,10 @@ impl Visualization {
     }
 
     pub fn play(&mut self, mut window: Window) {
-        let a = Point3::new(-0.1, -0.1, 0.0);
-        let b = Point3::new(0.0, 0.1, 0.0);
-        let c = Point3::new(0.1, -0.1, 0.0);
-
         let mut now = SystemTime::now();
         let time_per_frame = Duration::from_secs_f32(1.0 / 60.0);
         let mut camera: FirstPerson = utils::get_camera();
         while window.render_with_camera(&mut camera) {
-            window.draw_line(&a, &b, &Point3::new(-10.0, 0.0, 0.0));
-            window.draw_line(&b, &c, &Point3::new(0.0, 11.0, 0.0));
-            window.draw_line(&c, &a, &Point3::new(0.0, 0.0, 10.0));
             match now.elapsed() {
                 Ok(time_passed) => {
                     if time_passed > time_per_frame {

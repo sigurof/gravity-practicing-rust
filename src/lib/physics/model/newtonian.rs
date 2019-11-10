@@ -127,10 +127,6 @@ impl PhysicsModel<Vec<BodyState2>> for NewtonianModel2 {
     fn expose_state(&self) -> &Vec<BodyState2> {
         &self.bodies
     }
-
-    /*     fn get_image(&self) -> &Vec<BodyState2> {
-        self.bodies.iter().map(|body| body.r).collect()
-    } */
 }
 
 impl NewtonianModel2 {
